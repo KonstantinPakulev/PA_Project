@@ -16,5 +16,5 @@ if __name__ == "__main__":
 
     agents = [vi_escaper, pursuer]
 
-    # env.run(agents, end_state, 41)
-    env.run(agents, end_state, 41, save_as="vi")
+    env.run(agents, end_state, 41)
+    # env.run(agents, end_state, 41, save_as="vi")
