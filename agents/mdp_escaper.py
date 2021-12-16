@@ -5,7 +5,7 @@ from agents.agent import Agent
 
 class MDPEscaper(Agent):
 
-    def __init__(self, start_state, end_state, env, bellman_num_iter=1):
+    def __init__(self, start_state, end_state, env, bellman_num_iter=5):
         super().__init__(start_state, env)
         self._end_state = end_state
 
@@ -16,19 +16,20 @@ class MDPEscaper(Agent):
                                     np.roll(env._actions, 1, 0)], 1)
         self._p_actions_prob = np.array([0.8, 0.1, 0.1])
 
-        self._V_init = None
+        self._R_path = None
 
     def prepare(self):
         G_final = self._vi(self._end_state)
         max_value = G_final.max()
 
-        self._V_init = -G_final + max_value
-        self._V_init[self._V_init == (max_value + 1)] = -1.0
+        self._R_path = -G_final + max_value
+        self._R_path[self._R_path == (max_value + 1)] = -1.0
+        self._R_path[self._end_state[0], self._end_state[1]] = 1000
 
     def _plan(self):
-        V_curr = self._bellman()
+        U_curr = self._bellman()
 
-        u = self._get_best_action(self.get_state(), V_curr, return_action=True)
+        u = self._get_best_action(self.get_state(), U_curr, return_action=True)
 
         return u
 
@@ -79,25 +80,27 @@ class MDPEscaper(Agent):
 
         return G_final
 
-    def _bellman(self, gamma=0.999):
-        V_prev = np.copy(self._V_init)
+    def _bellman(self, gamma=0.9):
+        R = np.copy(self._R_path)
 
         for a in self._env.get_pursuers():
             s = a.get_state()
-            V_prev[s[0], s[1]] = -500
+            R[s[0], s[1]] = -500
 
-        V_curr = np.copy(V_prev)
+        U_prev = np.zeros_like(R)
+        U_curr = np.zeros_like(R)
 
         for _ in np.arange(self._bellman_num_iter):
-            for y in np.arange(V_prev.shape[0]):
-                for x in np.arange(V_prev.shape[1]):
-                    if V_prev[y, x] != -1.0 and V_prev[y, x] != -500:
-                        V_curr[y, x] = gamma * self._get_best_action(np.array([y, x]), V_prev)
+            for y in np.arange(R.shape[0]):
+                for x in np.arange(R.shape[1]):
+                    if R[y, x] != -1.0 and\
+                            R[y, x] != -500:
+                        U_curr[y, x] = R[y, x] + gamma * self._get_best_action(np.array([y, x]), U_prev)
 
-            V_prev = np.copy(V_curr)
-            V_curr[:, :] = -1.0
+            U_prev = np.copy(U_curr)
+            U_curr[:, :] = 0.0
 
-        return V_prev
+        return U_prev
 
     def _get_best_action(self, state, V, return_action=False):
         max_e_u_value = float('-inf')
