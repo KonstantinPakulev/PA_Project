@@ -75,18 +75,19 @@ class VIEscaper(Agent):
 
         for y in np.arange(G_final.shape[0]):
             for x in np.arange(G_final.shape[1]):
-                min_cost = max_value
-                min_u = None
+                if G_final[y, x] != -1:
+                    min_cost = max_value
+                    min_u = None
 
-                for u in actions:
-                    new_state, is_moved = self._try2move(np.array([y, x]), u)
+                    for u in actions:
+                        new_state, is_moved = self._try2move(np.array([y, x]), u)
 
-                    if is_moved:
-                        if G_final[new_state[0], new_state[1]] < min_cost:
-                            min_cost = G_final[new_state[0], new_state[1]]
-                            min_u = u
+                        if is_moved:
+                            if G_final[new_state[0], new_state[1]] < min_cost:
+                                min_cost = G_final[new_state[0], new_state[1]]
+                                min_u = u
 
-                if min_u is not None:
-                    policy[y, x] = np.array(min_u)
+                    if min_u is not None:
+                        policy[y, x] = np.array(min_u)
 
         return policy

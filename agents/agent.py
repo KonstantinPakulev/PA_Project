@@ -21,7 +21,11 @@ class Agent(ABC):
         if u is None:
             raise ValueError("You need to implement 'plan' method")
 
+        # print(u, self._state)
+
         self._state = self._state + u
+
+        # print(self._state, self.__class__)
 
     @abstractmethod
     def is_obj_completed(self):

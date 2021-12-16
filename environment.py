@@ -14,29 +14,24 @@ class Environment:
         self._map_layout = layout['environment']
         self._actions = layout['actions']
 
+        self._agents = None
+
     def run(self, agents, end_state, num_iter, save_as=None):
-        for a in agents:
+        self._agents = agents
+
+        for a in self._agents[::-1]:
             a.reset()
             a.prepare()
 
         fig = plt.figure()
 
-        is_obj_completed = False
-
         if save_as is not None:
-            images = [[self._plot_env(agents, end_state)]]
+            images = [[self._plot_env(end_state)]]
 
             for i in np.arange(num_iter):
-                for a in agents:
-                    a.plan_and_move()
+                is_obj_completed = self._run_iter()
 
-                    if a.is_obj_completed():
-                        a.print_completion_msg()
-
-                        is_obj_completed = True
-                        break
-
-                images.append([self._plot_env(agents, end_state)])
+                images.append([self._plot_env(end_state)])
 
                 if is_obj_completed:
                     break
@@ -45,20 +40,14 @@ class Environment:
             ani.save(f"{save_as}.mp4")
 
         else:
-            self._plot_env(agents, end_state)
+            self._plot_env(end_state)
+            plt.pause(0.1)
 
             for i in np.arange(num_iter):
-                for a in agents:
-                    a.plan_and_move()
-
-                    if a.is_obj_completed():
-                        a.print_completion_msg()
-
-                        is_obj_completed = True
-                        break
+                is_obj_completed = self._run_iter()
 
                 plt.clf()
-                self._plot_env(agents, end_state)
+                self._plot_env(end_state)
                 plt.pause(0.1)
 
                 if is_obj_completed:
@@ -66,10 +55,38 @@ class Environment:
 
             plt.show()
 
-    def _plot_env(self, agents, end_state):
+    def get_escaper(self):
+        return self._agents[0]
+
+    def get_pursuers(self):
+        return self._agents[1:]
+
+    def _run_iter(self):
+        is_obj_completed = False
+
+        for a in self._agents[::-1]:
+            a.plan_and_move()
+
+            if a.is_obj_completed():
+                a.print_completion_msg()
+
+                is_obj_completed = True
+                break
+
+        if not is_obj_completed:
+            for a in self._agents[1::-1]:
+                if a.is_obj_completed():
+                    a.print_completion_msg()
+
+                    is_obj_completed = True
+                    break
+
+        return is_obj_completed
+
+    def _plot_env(self, end_state):
         map_layout = np.copy(self._map_layout)
 
-        for a in agents:
+        for a in self._agents:
             s = a.get_state()
             map_layout[s[0], s[1]] = a.get_color()
 

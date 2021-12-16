@@ -5,15 +5,14 @@ from agents.agent import Agent
 
 class Pursuer(Agent):
 
-    def __init__(self, start_state, env, escaper):
+    def __init__(self, start_state, env):
         super().__init__(start_state, env)
-        self._escaper = escaper
 
     def prepare(self):
         pass
 
     def is_obj_completed(self):
-        return (self._escaper.get_state() == self.get_state()).all()
+        return (self._env.get_escaper().get_state() == self.get_state()).all()
 
     def print_completion_msg(self):
         print("Pursuer captured the escaper!")
@@ -35,7 +34,7 @@ class Pursuer(Agent):
             return np.array([0, 0])
 
     def _policy(self):
-        ds = np.array(self._escaper.get_state()) - np.array(self.get_state())
+        ds = np.array(self._env.get_escaper().get_state()) - np.array(self.get_state())
 
         theta = np.arctan2(ds[1], ds[0])
         theta = (theta + np.pi) / np.pi * 2
