@@ -1,15 +1,19 @@
 import numpy as np
 
+from scipy.ndimage.filters import gaussian_filter
+
 from agents.agent import Agent
 
 
 class MDPEscaper(Agent):
 
-    def __init__(self, start_state, end_state, env, bellman_num_iter=5):
+    def __init__(self, start_state, end_state, env,
+                 bellman_num_iter=5, pursuer_sigma=1.0):
         super().__init__(start_state, env)
         self._end_state = end_state
 
         self._bellman_num_iter = bellman_num_iter
+        self._pursuer_sigma = pursuer_sigma
 
         self._p_actions = np.stack([env._actions,
                                     np.roll(env._actions, -1, 0),
@@ -82,10 +86,10 @@ class MDPEscaper(Agent):
 
     def _bellman(self, gamma=0.9):
         R = np.copy(self._R_path)
+        R_path_mask = R != -1
 
-        for a in self._env.get_pursuers():
-            s = a.get_state()
-            R[s[0], s[1]] = -500
+        for p in self._env.get_pursuers():
+            R[R_path_mask] += self._pursuer_cost(R, p.get_state())[R_path_mask]
 
         U_prev = np.zeros_like(R)
         U_curr = np.zeros_like(R)
@@ -93,14 +97,13 @@ class MDPEscaper(Agent):
         for _ in np.arange(self._bellman_num_iter):
             for y in np.arange(R.shape[0]):
                 for x in np.arange(R.shape[1]):
-                    if R[y, x] != -1.0 and\
-                            R[y, x] != -500:
+                    if R[y, x] != -1.0 and R[y, x] != -500:
                         U_curr[y, x] = R[y, x] + gamma * self._get_best_action(np.array([y, x]), U_prev)
 
             U_prev = np.copy(U_curr)
             U_curr[:, :] = 0.0
 
-        return U_prev
+        return R
 
     def _get_best_action(self, state, V, return_action=False):
         max_e_u_value = float('-inf')
@@ -131,3 +134,12 @@ class MDPEscaper(Agent):
 
         else:
             return max_e_u_value
+
+    def _pursuer_cost(self, R, state):
+        R_pursuer = np.zeros_like(R)
+
+        R_pursuer[state[0], state[1]] = 1
+        R_pursuer = gaussian_filter(R_pursuer, sigma=self._pursuer_sigma)
+        R_pursuer = R_pursuer / R_pursuer.max() * -500
+
+        return R_pursuer
