@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -37,7 +38,11 @@ class Environment:
                     break
 
             ani = animation.ArtistAnimation(fig, images, interval=100, repeat=False)
-            ani.save(f"{save_as}.mp4")
+
+            if not os.path.exists("video"):
+                os.mkdir("video")
+
+            ani.save(f"video/{save_as}.mp4")
 
         else:
             self._plot_env(end_state)
