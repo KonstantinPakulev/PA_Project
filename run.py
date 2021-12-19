@@ -61,7 +61,7 @@ if __name__ == "__main__":
                       np.array([0, 5]),
                       np.array([20, 7]),
                       np.array([26, 16])]
-
+    h = None
     if args.pursuer == 'default':
         pur = Pursuer
     elif args.pursuer == 'a_star':
