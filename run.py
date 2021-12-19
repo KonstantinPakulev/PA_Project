@@ -4,6 +4,7 @@ import argparse
 from environment import Environment
 from agents.vi_escaper import VIEscaper, MaskedVIEscaper
 from agents.mdp_escaper import MDPEscaper
+from agents.mcts_escaper import MCTSEscaper
 from agents.pursuer import Pursuer
 from agents.a_star_pursuer import AStarPursuer
 
@@ -14,6 +15,7 @@ from agents.a_star_pursuer import AStarPursuer
 # --escaper mdp --escaper_params 3 --num_pursuers 5 --save_as mdp_escape
 # --escaper mdp --escaper_params 3 --num_pursuers 5 --pursuer a_star --heuristic_function manhattan --save_as mdp_escape_a_star_manhattan_pursue
 # --escaper mvi --escaper_params 1.0 --num_pursuers 5 --pursuer a_star --heuristic_function euclidean --save_as mvi_escape_a_star_euclidean_pursue
+# --escaper mcts --escaper_params "1000 4 False" --num_pursuers 5
 
 
 if __name__ == "__main__":
@@ -29,11 +31,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    env = Environment()
+    env = Environment.from_file()
 
     e_start_state = np.array([11, 6])
     end_state = np.array([15, 29])
-    
 
     if args.escaper == 'vi':
         escaper = VIEscaper(e_start_state, end_state, env)
@@ -43,6 +44,12 @@ if __name__ == "__main__":
 
     elif args.escaper == 'mdp':
         escaper = MDPEscaper(e_start_state, end_state, env, int(args.escaper_params))
+
+    elif args.escaper == 'mcts':
+        params = args.escaper_params.split(" ")
+        escaper = MCTSEscaper(e_start_state, end_state, env,
+                              num_iter=int(params[0]), num_sim_iter=int(params[1]),
+                              time_penalty=params[2] == "True")
 
     else:
         raise ValueError(f"No such escaper algorithm: {args.escaper}")
@@ -54,7 +61,7 @@ if __name__ == "__main__":
                       np.array([0, 5]),
                       np.array([20, 7]),
                       np.array([26, 16])]
-    
+
     if args.pursuer == 'default':
         pur = Pursuer
     elif args.pursuer == 'a_star':
@@ -68,7 +75,7 @@ if __name__ == "__main__":
         agents.append(pur(p_ss, env, h))
 
     if args.save_as is not None:
-        env.run(agents, end_state, args.num_iter, save_as=args.save_as)
+        env.run_and_visualize(agents, end_state, args.num_iter, save_as=args.save_as)
 
     else:
-        env.run(agents, end_state, args.num_iter)
+        env.run_and_visualize(agents, end_state, args.num_iter)

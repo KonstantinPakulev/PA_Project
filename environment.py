@@ -9,15 +9,22 @@ matplotlib.use("TkAgg")
 
 class Environment:
 
-    def __init__(self, layout_path='./data.npz'):
+    @staticmethod
+    def from_file(layout_path='./data.npz'):
         layout = np.load(layout_path)
 
-        self._map_layout = layout['environment']
-        self._actions = layout['actions']
+        map_layout = layout['environment']
+        actions = layout['actions']
+
+        return Environment(map_layout, actions)
+
+    def __init__(self, map_layout, actions):
+        self._map_layout = map_layout
+        self._actions = actions
 
         self._agents = None
 
-    def run(self, agents, end_state, num_iter, save_as=None):
+    def run_and_visualize(self, agents, end_state, num_iter, save_as=None):
         self._agents = agents
 
         for a in self._agents[::-1]:
@@ -60,20 +67,37 @@ class Environment:
 
             plt.show()
 
+    def run(self, agents, num_iter):
+        self._agents = agents
+
+        is_obj_completed = False
+
+        for i in np.arange(num_iter):
+            is_obj_completed = self._run_iter(verbose=False)
+
+            if is_obj_completed:
+                break
+
+        return is_obj_completed
+
     def get_escaper(self):
         return self._agents[0]
 
     def get_pursuers(self):
         return self._agents[1:]
 
-    def _run_iter(self):
+    def copy(self):
+        return Environment(self._map_layout, self._actions)
+
+    def _run_iter(self, verbose=True):
         is_obj_completed = False
 
         for a in self._agents[::-1]:
             a.plan_and_move()
 
             if a.is_obj_completed():
-                a.print_completion_msg()
+                if verbose:
+                    a.print_completion_msg()
 
                 is_obj_completed = True
                 break
@@ -81,7 +105,8 @@ class Environment:
         if not is_obj_completed:
             for a in self._agents[1::-1]:
                 if a.is_obj_completed():
-                    a.print_completion_msg()
+                    if verbose:
+                        a.print_completion_msg()
 
                     is_obj_completed = True
                     break
