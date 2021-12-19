@@ -39,10 +39,10 @@ class Environment:
 
             ani = animation.ArtistAnimation(fig, images, interval=100, repeat=False)
 
-            if not os.path.exists("video"):
-                os.mkdir("video")
+            if not os.path.exists("videos"):
+                os.mkdir("videos")
 
-            ani.save(f"video/{save_as}.mp4")
+            ani.save(f"videos/{save_as}.mp4")
 
         else:
             self._plot_env(end_state)

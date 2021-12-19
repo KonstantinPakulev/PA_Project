@@ -12,6 +12,8 @@ from agents.a_star_pursuer import AStarPursuer
 # --escaper mvi --escaper_params 1.0 --num_pursuers 1 --save_as mvi_escape
 # --escaper mvi --escaper_params 1.0 --num_pursuers 5 --save_as mvi_no_escape
 # --escaper mdp --escaper_params 3 --num_pursuers 5 --save_as mdp_escape
+# --escaper mdp --escaper_params 3 --num_pursuers 5 --pursuer a_star --heuristic_function manhattan --save_as mdp_escape_a_star_manhattan_pursue
+# --escaper mvi --escaper_params 1.0 --num_pursuers 5 --pursuer a_star --heuristic_function euclidean --save_as mvi_escape_a_star_euclidean_pursue
 
 
 if __name__ == "__main__":
