@@ -5,7 +5,7 @@ from agents.agent import Agent
 
 class Pursuer(Agent):
 
-    def __init__(self, start_state, env):
+    def __init__(self, start_state, env, *args):
         super().__init__(start_state, env)
 
     def prepare(self):

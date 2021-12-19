@@ -6,6 +6,7 @@ from agents.vi_escaper import VIEscaper, MaskedVIEscaper
 from agents.mdp_escaper import MDPEscaper
 from agents.mcts_escaper import MCTSEscaper
 from agents.pursuer import Pursuer
+from agents.a_star_pursuer import AStarPursuer
 
 # --escaper vi --num_pursuers 0 --save_as vi
 # --escaper vi --num_pursuers 1 --save_as vi_no_escape
@@ -19,10 +20,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--escaper', help='escaper algorithm to use')
-    parser.add_argument('--escaper_params', help='a string of parameters (if any) for escaper')
-    parser.add_argument('--num_pursuers', type=int, help='number of pursuers from 0 to 5')
+    parser.add_argument('--escaper_params', default=3, help='a string of parameters (if any) for escaper')
+    parser.add_argument('--num_pursuers', type=int, default=1, help='number of pursuers from 0 to 5')
+    parser.add_argument('--pursuer', type=str, default='default', help='pursuer algorithm to use')
     parser.add_argument('--save_as', nargs='?', help='save as mp4 with specified name')
     parser.add_argument('--num_iter', type=int, nargs='?', default=300)
+    parser.add_argument('--heuristic_function', type=str, default='euclidean', nargs='?', help='heuristic function used by A* pursuer')
 
     args = parser.parse_args()
 
@@ -57,8 +60,17 @@ if __name__ == "__main__":
                       np.array([20, 7]),
                       np.array([26, 16])]
 
+    if args.pursuer == 'default':
+        pur = Pursuer
+    elif args.pursuer == 'a_star':
+        pur = AStarPursuer
+        if args.heuristic_function == 'manhattan':
+            h = Environment.h_manhattan
+        elif args.heuristic_function == 'euclidean':
+            h = Environment.h_euclidean
+
     for p_ss in p_start_states[:args.num_pursuers]:
-        agents.append(Pursuer(p_ss, env))
+        agents.append(pur(p_ss, env, h))
 
     if args.save_as is not None:
         env.run_and_visualize(agents, end_state, args.num_iter, save_as=args.save_as)

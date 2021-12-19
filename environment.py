@@ -123,3 +123,11 @@ class Environment:
         map_layout[end_state[0], end_state[1]] = 0.3
 
         return plt.imshow(map_layout)
+    
+    @staticmethod
+    def h_euclidean(src, dst):
+        return np.linalg.norm(src - dst)
+    
+    @staticmethod
+    def h_manhattan(src, dst):
+        return np.linalg.norm(src - dst, ord=1)
