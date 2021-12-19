@@ -21,7 +21,7 @@ from agents.a_star_pursuer import AStarPursuer
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--escaper', help='escaper algorithm to use')
+    parser.add_argument('--escaper', type=str, default='vi', help='escaper algorithm to use')
     parser.add_argument('--escaper_params', default=3, help='a string of parameters (if any) for escaper')
     parser.add_argument('--num_pursuers', type=int, default=1, help='number of pursuers from 0 to 5')
     parser.add_argument('--pursuer', type=str, default='default', help='pursuer algorithm to use')
