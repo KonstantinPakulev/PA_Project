@@ -15,12 +15,10 @@ class VIEscaper(Agent):
         self._end_state = end_state
 
         self._policy = None
-
+    
     def prepare(self):
-        G_final = vi(self._env._map_layout, self._env._actions, self._try2move,
-                     self._end_state)
-
-        self._policy = self._policy_vi(G_final)
+        G_final = vi(self._env._map_layout, self._env._actions, self._try2move, self._end_state)
+        self._policy = policy_vi(self._env._map_layout, self._env._actions, self._try2move, G_final)
 
     def _plan(self):
         return self._policy[self._state[0], self._state[1]]
@@ -33,32 +31,6 @@ class VIEscaper(Agent):
 
     def get_color(self):
         return 1.0
-
-    def _policy_vi(self, G_final):
-        map_layout = self._env._map_layout
-        actions = self._env._actions
-
-        max_value = map_layout.shape[0] * map_layout.shape[1]
-        policy = np.zeros((G_final.shape[0], G_final.shape[1], 2), dtype=np.int)
-
-        for y in np.arange(G_final.shape[0]):
-            for x in np.arange(G_final.shape[1]):
-                if G_final[y, x] != -1:
-                    min_cost = max_value
-                    min_u = None
-
-                    for u in actions:
-                        new_state, is_moved = self._try2move(np.array([y, x]), u)
-
-                        if is_moved:
-                            if G_final[new_state[0], new_state[1]] < min_cost:
-                                min_cost = G_final[new_state[0], new_state[1]]
-                                min_u = u
-
-                    if min_u is not None:
-                        policy[y, x] = np.array(min_u)
-
-        return policy
 
 
 class MaskedVIEscaper(VIEscaper):
@@ -75,7 +47,7 @@ class MaskedVIEscaper(VIEscaper):
 
     def _plan(self):
         G_p = self._get_G_p()
-        _policy = self._policy_vi(G_p)
+        _policy = policy_vi(self._env._map_layout, self._env._actions, self._try2move, G_p)
 
         return _policy[self._state[0], self._state[1]]
 
@@ -143,3 +115,27 @@ def vi(map_layout, actions, try2move_func, end_state, max_num_iter=100):
         print("Warning! VI didn't converge")
 
     return G_final
+
+
+def policy_vi(map_layout, actions, try2move_func, G_final):
+    max_value = map_layout.shape[0] * map_layout.shape[1]
+    policy = np.zeros((G_final.shape[0], G_final.shape[1], 2), dtype=np.int)
+
+    for y in np.arange(G_final.shape[0]):
+        for x in np.arange(G_final.shape[1]):
+            if G_final[y, x] != -1:
+                min_cost = max_value
+                min_u = None
+
+                for u in actions:
+                    new_state, is_moved = try2move_func(np.array([y, x]), u)
+
+                    if is_moved:
+                        if G_final[new_state[0], new_state[1]] < min_cost:
+                            min_cost = G_final[new_state[0], new_state[1]]
+                            min_u = u
+
+                if min_u is not None:
+                    policy[y, x] = np.array(min_u)
+
+    return policy
