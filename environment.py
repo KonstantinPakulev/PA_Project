@@ -103,7 +103,7 @@ class Environment:
                 break
 
         if not is_obj_completed:
-            for a in self._agents[1::-1]:
+            for a in self._agents[1::]:
                 if a.is_obj_completed():
                     if verbose:
                         a.print_completion_msg()

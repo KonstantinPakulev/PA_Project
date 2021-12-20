@@ -28,7 +28,7 @@ class MDPEscaper(Agent):
         R_p = self._get_R_p()
         U_p = self._bellman(R_p)
 
-        u = self._get_best_action(self.get_state(), -U_p + self._R_path, return_action=True)
+        u = self._get_best_action(self.get_state(), -U_p + 60 * self._R_path, return_action=True)
 
         return u
 
