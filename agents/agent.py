@@ -25,7 +25,7 @@ class Agent(ABC):
 
         self._state = self._state + u
 
-        # print(self._state, self.__class__)
+        print(f'Actor \'{self.__class__}\' moved to {self._state}')
 
     @abstractmethod
     def is_obj_completed(self):

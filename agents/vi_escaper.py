@@ -61,7 +61,12 @@ class MaskedVIEscaper(VIEscaper):
             if self._pursuer_sigma != -1:
                 Pi = np.zeros_like(self._G_final)
 
-                Pi[state[0], state[1]] = 1
+                try:
+                    for s in state:
+                        Pi[s.x, s.y] = 1
+                except AttributeError:
+                    Pi[state[0], state[1]] = 1
+
                 Pi = gaussian_filter(Pi, sigma=self._pursuer_sigma)
                 Pi = Pi / Pi.max() * PURSUER_COST
 

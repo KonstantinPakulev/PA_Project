@@ -36,7 +36,7 @@ class Environment:
         if save_as is not None:
             images = [[self._plot_env(end_state)]]
 
-            for i in np.arange(num_iter):
+            for _ in np.arange(num_iter):
                 is_obj_completed = self._run_iter()
 
                 images.append([self._plot_env(end_state)])
@@ -55,7 +55,7 @@ class Environment:
             self._plot_env(end_state)
             plt.pause(0.1)
 
-            for i in np.arange(num_iter):
+            for _ in np.arange(num_iter):
                 is_obj_completed = self._run_iter()
 
                 plt.clf()
@@ -72,7 +72,7 @@ class Environment:
 
         is_obj_completed = False
 
-        for i in np.arange(num_iter):
+        for _ in np.arange(num_iter):
             is_obj_completed = self._run_iter(verbose=False)
 
             if is_obj_completed:
@@ -118,12 +118,16 @@ class Environment:
 
         for a in self._agents:
             s = a.get_state()
-            map_layout[s[0], s[1]] = a.get_color()
+            try:
+                for oip in s:
+                    map_layout[oip.x, oip.y] = a.get_color()
+            except AttributeError:
+                map_layout[s[0], s[1]] = a.get_color()
 
         map_layout[end_state[0], end_state[1]] = 0.3
 
         return plt.imshow(map_layout)
-    
+
     @staticmethod
     def h_euclidean(src, dst):
         return np.linalg.norm(src - dst)
@@ -131,3 +135,9 @@ class Environment:
     @staticmethod
     def h_manhattan(src, dst):
         return np.linalg.norm(src - dst, ord=1)
+
+    def get_x_size(self):
+        return self._map_layout.shape[0]
+
+    def get_y_size(self):
+        return self._map_layout.shape[1]

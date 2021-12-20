@@ -2,6 +2,7 @@ import numpy as np
 import argparse
 
 from environment import Environment
+from agents.prm_pursuers import PRMPursuers
 from agents.vi_escaper import VIEscaper, MaskedVIEscaper
 from agents.mdp_escaper import MDPEscaper
 from agents.mcts_escaper import MCTSEscaper
@@ -72,9 +73,13 @@ if __name__ == "__main__":
             h = Environment.h_manhattan
         elif args.heuristic_function == 'euclidean':
             h = Environment.h_euclidean
+    elif args.pursuer == 'prm':
+        pur = PRMPursuers
+        agents.append(pur(p_start_states[:args.num_pursuers], env))
 
-    for p_ss in p_start_states[:args.num_pursuers]:
-        agents.append(pursuer(p_ss, env, h))
+    if args.pursuer != 'prm':
+        for p_ss in p_start_states[:args.num_pursuers]:
+            agents.append(pursuer(p_ss, env, h))
 
     if args.save_as is not None:
         env.run_and_visualize(agents, end_state, args.num_iter, save_as=args.save_as)
